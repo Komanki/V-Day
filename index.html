@@ -85,15 +85,18 @@
     <button class="btn" id="noBtn">No </button>
 </div>
     </div>
-    <script>
-const noBtn = document.getElementById("noBtn");
+    
+
+<script>
+    const noBtn = document.getElementById("noBtn");
 const yesBtn = document.getElementById("yesBtn");
 
 let isFirstMove = true;
 
-function moveButton() {
+function moveButton(e) {
+    // Prevent zooming or accidental clicks on mobile
+    if (e.type === 'touchstart') e.preventDefault();
 
-    // First move → switch to absolute positioning
     if (isFirstMove) {
         const rect = noBtn.getBoundingClientRect();
         noBtn.style.position = "absolute";
@@ -105,11 +108,12 @@ function moveButton() {
     const btnWidth = noBtn.offsetWidth;
     const btnHeight = noBtn.offsetHeight;
 
-    const maxX = window.innerWidth - btnWidth - 20;
-    const maxY = window.innerHeight - btnHeight - 20;
+    // Keep it within viewport padding
+    const maxX = window.innerWidth - btnWidth - 30;
+    const maxY = window.innerHeight - btnHeight - 30;
 
-    const randomX = Math.random() * maxX;
-    const randomY = Math.random() * maxY;
+    const randomX = Math.max(10, Math.random() * maxX);
+    const randomY = Math.max(10, Math.random() * maxY);
 
     noBtn.style.transform = "scale(0.8)";
 
@@ -120,42 +124,39 @@ function moveButton() {
     }, 100);
 }
 
-// Works on desktop + mobile
+// Comprehensive event listeners for all devices
 noBtn.addEventListener("pointerenter", moveButton);
-noBtn.addEventListener("touchstart", moveButton);
+noBtn.addEventListener("touchstart", moveButton, {passive: false});
+noBtn.addEventListener("click", (e) => {
+    // Just in case they somehow manage to click it
+    moveButton(e);
+});
 
 yesBtn.addEventListener("click", () => {
-
+    // Confetti logic
     for (let i = 0; i < 40; i++) {
         const heart = document.createElement("div");
         heart.innerHTML = "❤️";
         heart.classList.add("heart");
-
         heart.style.left = "50%";
         heart.style.top = "50%";
-        heart.style.transform = "translate(-50%, -50%)";
-
         const randomX = (Math.random() - 0.5) * 600 + "px";
         const randomY = (Math.random() - 0.5) * 600 + "px";
-
         heart.style.setProperty("--x", randomX);
         heart.style.setProperty("--y", randomY);
-
         document.body.appendChild(heart);
-
-        setTimeout(() => {
-            heart.remove();
-        }, 1000);
+        setTimeout(() => heart.remove(), 1000);
     }
 
     setTimeout(() => {
         document.body.innerHTML = `
             <h1 style="margin-top:200px;">YAYYYYY ❤️❤️❤️</h1>
-            <h2>You just made me the happiest person alive</h2>
+            <h2 style="padding: 20px;">You just made me the happiest person alive</h2>
         `;
     }, 800);
 });
 </script>
 </body>
 </html>
+
 
