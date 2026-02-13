@@ -94,8 +94,11 @@ const yesBtn = document.getElementById("yesBtn");
 let isFirstMove = true;
 
 function moveButton(e) {
-    // Prevent zooming or accidental clicks on mobile
-    if (e.type === 'touchstart') e.preventDefault();
+    // 1. Crucial: Stop the phone from "holding" the button
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
 
     if (isFirstMove) {
         const rect = noBtn.getBoundingClientRect();
@@ -105,32 +108,28 @@ function moveButton(e) {
         isFirstMove = false;
     }
 
+    // 2. Calculate new position
     const btnWidth = noBtn.offsetWidth;
     const btnHeight = noBtn.offsetHeight;
+    const maxX = window.innerWidth - btnWidth - 40;
+    const maxY = window.innerHeight - btnHeight - 40;
 
-    // Keep it within viewport padding
-    const maxX = window.innerWidth - btnWidth - 30;
-    const maxY = window.innerHeight - btnHeight - 30;
+    const randomX = Math.max(20, Math.random() * maxX);
+    const randomY = Math.max(20, Math.random() * maxY);
 
-    const randomX = Math.max(10, Math.random() * maxX);
-    const randomY = Math.max(10, Math.random() * maxY);
-
-    noBtn.style.transform = "scale(0.8)";
-
-    setTimeout(() => {
-        noBtn.style.left = randomX + "px";
-        noBtn.style.top = randomY + "px";
-        noBtn.style.transform = "scale(1)";
-    }, 100);
+    // 3. Move instantly, then blur to reset mobile focus
+    noBtn.style.left = randomX + "px";
+    noBtn.style.top = randomY + "px";
+    noBtn.blur(); // This removes "focus" so it's ready for the next tap
 }
 
-// Comprehensive event listeners for all devices
+// Attach to every possible way a user can interact
+noBtn.addEventListener("touchstart", moveButton, { passive: false });
+noBtn.addEventListener("mousedown", moveButton);
 noBtn.addEventListener("pointerenter", moveButton);
-noBtn.addEventListener("touchstart", moveButton, {passive: false});
-noBtn.addEventListener("click", (e) => {
-    // Just in case they somehow manage to click it
-    moveButton(e);
-});
+
+// Final "safety net": if they somehow manage to let go of the tap
+noBtn.addEventListener("touchend", (e) => e.preventDefault());
 
 yesBtn.addEventListener("click", () => {
     // Confetti logic
@@ -150,13 +149,16 @@ yesBtn.addEventListener("click", () => {
 
     setTimeout(() => {
         document.body.innerHTML = `
-            <h1 style="margin-top:200px;">YAYYYYY ❤️❤️❤️</h1>
-            <h2 style="padding: 20px;">You just made me the happiest person alive</h2>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh;">
+                <h1>YAYYYYY ❤️❤️❤️</h1>
+                <h2 style="padding: 20px;">You just made me the happiest person alive</h2>
+            </div>
         `;
     }, 800);
 });
 </script>
 </body>
 </html>
+
 
 
