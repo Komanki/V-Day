@@ -1,164 +1,182 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Be My Valentine ❤️</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
-        .button-container {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
         body {
-    margin: 0;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: hsl(350, 100%, 90%);
-    font-family: Arial, sans-serif;
-    overflow: hidden;
-    text-align: center;
-}
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: hsl(350, 100%, 90%);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            overflow: hidden;
+            text-align: center;
+            touch-action: manipulation; /* Improves mobile tap response */
+        }
 
         h1 {
-            font-size: clamp(24px, 6vw, 40px);
-            margin-top: 100px;
-            font-size: 40px;
+            font-size: clamp(28px, 8vw, 48px);
+            margin: 20px;
+            color: #d63384;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+            min-height: 100px;
         }
 
         .btn {
             padding: 15px 30px;
-            font-size:clamp(16px, 4vw, 18px);
+            font-size: clamp(18px, 5vw, 22px);
             border: none;
-            border-radius: 10px;
+            border-radius: 50px;
             cursor: pointer;
-            
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s active;
         }
 
         #yesBtn {
-            background-color: red;
+            background-color: #ff4d6d;
             color: white;
-            
+            transition: all 0.3s ease;
+            z-index: 10;
         }
 
-       #noBtn {
-    background-color: white;
-    color: black;
-    
-    transition: 
-        left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-        top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-        transform 0.2s ease;
-}
-.heart {
-    position: fixed;
-    font-size: 24px;
-    animation: explode 1s ease-out forwards;
-}
+        #noBtn {
+            background-color: white;
+            color: #ff4d6d;
+            position: relative;
+            /* Faster transition makes it harder to catch */
+            transition: left 0.2s ease-out, top 0.2s ease-out;
+            z-index: 5;
+        }
 
-@keyframes explode {
-    0% {
-        transform: translate(0, 0) scale(1);
-        opacity: 1;
-    }
-    100% {
-        transform: translate(var(--x), var(--y)) scale(2);
-        opacity: 0;
-    }
-}
+        .heart {
+            position: fixed;
+            font-size: 24px;
+            pointer-events: none;
+            animation: explode 1s ease-out forwards;
+        }
 
-
+        @keyframes explode {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(var(--x), var(--y)) scale(2); opacity: 0; }
+        }
     </style>
 </head>
 
 <body>
 
-    <h1>Will you be my Valentine? ❤️</h1>
-    <div>
-       <div class="button-container">
-    <button class="btn" id="yesBtn">Yes </button>
-    <button class="btn" id="noBtn">No </button>
-</div>
-    </div>
+    <h1 id="questionText">Will you be my Valentine? ❤️</h1>
     
+    <div class="button-container">
+        <button class="btn" id="yesBtn">Yes </button>
+        <button class="btn" id="noBtn">No </button>
+    </div>
 
-<script>
-    const noBtn = document.getElementById("noBtn");
-const yesBtn = document.getElementById("yesBtn");
+    <script>
+        const noBtn = document.getElementById("noBtn");
+        const yesBtn = document.getElementById("yesBtn");
+        const questionText = document.getElementById("questionText");
 
-let isFirstMove = true;
+        let isFirstMove = true;
+        let noCount = 0;
 
-function moveButton(e) {
-    // 1. Crucial: Stop the phone from "holding" the button
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
+        const messages = [
+            "Are you sure?",
+            "Really sure??",
+            "Think again! 🥺",
+            "Last chance...",
+            "You're breaking my heart! 💔"
+        ];
 
-    if (isFirstMove) {
-        const rect = noBtn.getBoundingClientRect();
-        noBtn.style.position = "absolute";
-        noBtn.style.left = rect.left + "px";
-        noBtn.style.top = rect.top + "px";
-        isFirstMove = false;
-    }
+        function moveButton(e) {
+            // Stop the tap from actually clicking
+            if (e && e.cancelable) e.preventDefault();
 
-    // 2. Calculate new position
-    const btnWidth = noBtn.offsetWidth;
-    const btnHeight = noBtn.offsetHeight;
-    const maxX = window.innerWidth - btnWidth - 40;
-    const maxY = window.innerHeight - btnHeight - 40;
+            if (isFirstMove) {
+                noBtn.style.position = "fixed";
+                isFirstMove = false;
+            }
 
-    const randomX = Math.max(20, Math.random() * maxX);
-    const randomY = Math.max(20, Math.random() * maxY);
+            // Update message and grow Yes button
+            if (noCount < messages.length) {
+                questionText.innerText = messages[noCount];
+                const currentScale = 1 + (noCount * 0.2);
+                yesBtn.style.transform = `scale(${currentScale})`;
+                noCount++;
+            }
 
-    // 3. Move instantly, then blur to reset mobile focus
-    noBtn.style.left = randomX + "px";
-    noBtn.style.top = randomY + "px";
-    noBtn.blur(); // This removes "focus" so it's ready for the next tap
-}
+            const btnWidth = noBtn.offsetWidth;
+            const btnHeight = noBtn.offsetHeight;
 
-// Attach to every possible way a user can interact
-noBtn.addEventListener("touchstart", moveButton, { passive: false });
-noBtn.addEventListener("mousedown", moveButton);
-noBtn.addEventListener("pointerenter", moveButton);
+            // Safe boundaries
+            const padding = 50;
+            const maxX = window.innerWidth - btnWidth - padding;
+            const maxY = window.innerHeight - btnHeight - padding;
 
-// Final "safety net": if they somehow manage to let go of the tap
-noBtn.addEventListener("touchend", (e) => e.preventDefault());
+            const randomX = Math.max(padding, Math.random() * maxX);
+            const randomY = Math.max(padding, Math.random() * maxY);
 
-yesBtn.addEventListener("click", () => {
-    // Confetti logic
-    for (let i = 0; i < 40; i++) {
-        const heart = document.createElement("div");
-        heart.innerHTML = "❤️";
-        heart.classList.add("heart");
-        heart.style.left = "50%";
-        heart.style.top = "50%";
-        const randomX = (Math.random() - 0.5) * 600 + "px";
-        const randomY = (Math.random() - 0.5) * 600 + "px";
-        heart.style.setProperty("--x", randomX);
-        heart.style.setProperty("--y", randomY);
-        document.body.appendChild(heart);
-        setTimeout(() => heart.remove(), 1000);
-    }
+            noBtn.style.left = randomX + "px";
+            noBtn.style.top = randomY + "px";
+            
+            // Critical for Android: remove focus so the next tap registers fresh
+            noBtn.blur();
+        }
 
-    setTimeout(() => {
-        document.body.innerHTML = `
-            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh;">
-                <h1>YAYYYYY ❤️❤️❤️</h1>
-                <h2 style="padding: 20px;">You just made me the happiest person alive</h2>
-            </div>
-        `;
-    }, 800);
-});
-</script>
+        // Mouse move for PC
+        noBtn.addEventListener("mouseover", moveButton);
+
+        // Mobile touch - using the document-level intercept for "sticky" fingers
+        document.addEventListener("touchstart", (e) => {
+            if (e.target === noBtn) {
+                moveButton(e);
+            }
+        }, { passive: false });
+
+        // Safety: prevent any clicks on the No button
+        noBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            moveButton(e);
+        });
+
+        yesBtn.addEventListener("click", () => {
+            // Heart Explosion
+            for (let i = 0; i < 50; i++) {
+                const heart = document.createElement("div");
+                heart.innerHTML = "❤️";
+                heart.classList.add("heart");
+                heart.style.left = "50%";
+                heart.style.top = "50%";
+                const randomX = (Math.random() - 0.5) * 800 + "px";
+                const randomY = (Math.random() - 0.5) * 800 + "px";
+                heart.style.setProperty("--x", randomX);
+                heart.style.setProperty("--y", randomY);
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 1000);
+            }
+
+            setTimeout(() => {
+                document.body.innerHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; padding: 20px;">
+                        <h1 style="font-size: 50px;">YAYYYYY ❤️❤️❤️</h1>
+                        <h2 style="color: #d63384;">You've made me the happiest person alive!</h2>
+                    </div>
+                `;
+            }, 600);
+        });
+    </script>
 </body>
 </html>
-
-
-
